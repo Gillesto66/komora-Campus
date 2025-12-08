@@ -69,6 +69,43 @@
 </header>
 <main class="flex-grow px-4">
 <div class="bg-white dark:bg-background-dark/50 shadow-sm rounded-xl p-6 sm:p-10 flex flex-col items-center text-center">
+  @if(session('must_set_password'))
+            <div class="mb-8 p-6 bg-primary/10 border border-primary/30 rounded-xl w-full">
+                <h3 class="text-2xl font-bold text-primary mb-4">Bienvenue sur KOMORA Campus ! 🎉</h3>
+                <p class="text-lg mb-6">Votre compte a été créé automatiquement avec l'email utilisé lors du paiement.</p>
+                <p class="mb-6">Pour finaliser votre inscription, veuillez choisir un mot de passe :</p>
+
+                <form action="{{ route('password.set') }}" method="POST" class="max-w-md mx-auto space-y-4">
+                    @csrf
+                    <input type="hidden" name="email" value="{{ auth()->user()->email }}">
+                    <div>
+                        <input type="password" name="password" required placeholder="Choisissez un mot de passe"
+                               class="w-full px-5 h-12 rounded-lg border focus:ring-2 focus:ring-primary outline-none">
+                    </div>
+                    <div>
+                        <input type="password" name="password_confirmation" required placeholder="Confirmez le mot de passe"
+                               class="w-full px-5 h-12 rounded-lg border focus:ring-2 focus:ring-primary outline-none">
+                    </div>
+                    <button type="submit"
+                            class="w-full h-12 bg-primary text-white font-bold rounded-lg hover:bg-primary/90 transition">
+                        Créer mon mot de passe et accéder à mon espace
+                    </button>
+                </form>
+            </div>
+        @else
+            <div class="mb-5 flex items-center justify-center size-16 rounded-full bg-success/10 text-success">
+                <span class="material-symbols-outlined !text-4xl">check_circle</span>
+            </div>
+            <p class="text-3xl sm:text-4xl font-black leading-tight tracking-[-0.033em]">Merci pour votre achat !</p>
+            <p class="text-text-secondary-light dark:text-text-secondary-dark text-base font-normal leading-normal max-w-lg mx-auto mt-4">
+                @if(auth()->user()->wasRecentlyCreated ?? false)
+                    Votre compte a été créé avec succès !
+                @else
+                    Votre commande a été traitée avec succès.
+                @endif
+                Un e-mail de confirmation vous a été envoyé.
+            </p>
+        @endif
 <div class="mb-5 flex items-center justify-center size-16 rounded-full bg-success/10 text-success">
 <span class="material-symbols-outlined !text-4xl">check_circle</span>
 </div>
@@ -142,6 +179,17 @@
 </button>
 <a class="text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark hover:text-primary dark:hover:text-primary transition-colors" href="#">Voir mon historique d'achats</a>
 </div>
+<div class="w-full flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 mt-10">
+            <a href="{{ route('dashboard') }}"
+               class="flex w-full sm:w-auto min-w-[84px] cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-12 px-6 bg-primary text-white text-base font-medium leading-normal transition-opacity hover:opacity-90">
+                <span class="material-symbols-outlined">dashboard</span>
+                <span class="truncate">Mon espace personnel</span>
+            </a>
+            <button onclick="downloadAll()" class="flex items-center gap-2 px-6 h-12 bg-primary/20 text-primary rounded-lg font-medium hover:bg-primary/30 transition">
+                <span class="material-symbols-outlined">download</span>
+                Tout télécharger (.zip)
+            </button>
+        </div>
 </div>
 </main>
 <footer class="text-center py-8 px-4 mt-10">

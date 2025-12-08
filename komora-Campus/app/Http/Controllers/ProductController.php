@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Log;
 use App\Models\Niveau;
 use App\Models\Matiere;
 use Illuminate\Support\Facades\DB;
+use App\Models\agc;
 
 class ProductController extends Controller
 {
@@ -17,25 +18,45 @@ class ProductController extends Controller
      */
     public function index()
     {
-        // 3 filières au choix (les plus populaires ou manuellement choisies)
-        $featuredFilieres = Filiere::withCount('niveaux.matieres.products')
-            ->orderBy('products_count', 'desc')
+        try {
+            $featuredFilieres = Filiere::select('filieres.*')
+            ->selectSub(
+                Product::where('type', 'matiere')
+                    ->join('matieres', 'products.matiere_id', '=', 'matieres.id')
+                    ->join('niveaux', 'matieres.niveau_id', '=', 'niveaux.id')
+                    ->whereColumn('niveaux.filiere_id', 'filieres.id')
+                    ->selectRaw('count(*)'),
+                'total_products'
+            )
+            ->orderByDesc('total_products')
             ->limit(3)
             ->get(['id', 'name', 'emblem']);
 
-        // 4 derniers produits ajoutés (toutes catégories)
-        $latestProducts = Product::with(['matiere.niveau.filiere'])
-            ->where('type', 'matiere') // seulement les produits "matière", pas les packs
-            ->latest()
-            ->limit(4)
-            ->get(['id', 'title', 'price_cfa', 'period', 'is_corrected', 'preview_path']);
+            $latestProducts = Product::with(['matiere.niveau.filiere'])
+                ->where('type', 'matiere')
+                ->orderBy('created_at', 'desc')
+                ->take(4)
+                ->get(['id', 'title', 'price_cfa', 'period', 'is_corrected', 'preview_path']);
 
-        Log::info('Accueil chargée', [
-            'featured_filieres' => $featuredFilieres->pluck('name'),
-            'latest_products_count' => $latestProducts->count()
-        ]);
+            Log::info('Accueil chargé', [
+                'featured' => $featuredFilieres->pluck('name', 'total_products')->toArray(),
+                'latest_products_ids' => $latestProducts->pluck('id', 'created_at')->toArray(),
+            ]);
 
-        return view('welcome', compact('featuredFilieres', 'latestProducts'));
+            return view('welcome', compact('featuredFilieres', 'latestProducts'));
+
+        } catch (\Throwable $e) {
+            Log::error('Erreur accueil', [
+                'msg' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile()
+            ]);
+
+            return view('welcome', [
+                'featuredFilieres' => collect(),
+                'latestProducts' => collect(),
+            ]);
+        }
     }
 
     /**
@@ -105,14 +126,35 @@ class ProductController extends Controller
     /**
  * Affiche la vue catalogue avec données initiales (chargées dynamiquement via JS)
  */
-public function showFilter()
-{
-    $filieres = Filiere::select('id', 'name')->get();
 
-    Log::info('Catalogue affiché', ['filieres_count' => $filieres->count()]);
+    public function showFilter(Request $request)
+    {
+        $filieres = Filiere::select('id', 'name')->get();
 
-    return view('catalogue', compact('filieres'));
-}
+        $filiereId = $request->query('filiere');
+
+        // Toujours un paginateur (même vide) → links() fonctionne toujours
+        $products = Product::with(['matiere.niveau.filiere'])
+            ->when($filiereId, function ($query) use ($filiereId) {
+                return $query->whereHas('matiere.niveau.filiere', fn($q) => $q->where('id', $filiereId));
+            })
+            ->latest()
+            ->paginate(12);
+
+        $products->appends($request->query()); // garde ?filiere=xx dans les liens de pagination
+
+        $searchCount = $products->total();
+
+        Log::info('Catalogue filtré', [
+            'filiere_id' => $filiereId,
+            'products_count' => $searchCount,
+            'page' => $products->currentPage(),
+        ]);
+
+        $product = $products; // Pour cohérence avec vue
+
+        return view('catalogue', compact('filieres', 'products', 'searchCount'));
+    }
 
 /**
  * Filtre les produits basé sur params (cumulatifs: filière -> niveau -> matière -> semestre)
@@ -146,6 +188,7 @@ public function showFilter()
         }
 
         $products = $query->latest()->paginate(12);
+        $searchCount = $products->count();
 
         Log::info('Filtre appliqué', [
             'params' => $request->query(),
@@ -159,12 +202,13 @@ public function showFilter()
                     'title' => $product->title,
                     'niveau' => $product->matiere?->niveau?->name,
                     'period' => $product->period,
-                    'price' => $product->price_euro ?? $product->price_cfa / 655.957 . '€', // Conversion approx si euro null
+                    'price' => $product->price_cfa ?? $product->price_euro *655.957, // Conversion approx si euro null
                     'preview_url' => $product->preview_path,
                     'url' => route('product.show', $product->id)
                 ];
             }),
-            'pagination' => $products->links()->toHtml() // Pour updater pagination
+            'pagination' => $products->links()->toHtml() ,// Pour updater pagination
+            'results_count' => $searchCount
         ]);
     }
 

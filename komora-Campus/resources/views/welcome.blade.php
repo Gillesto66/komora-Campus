@@ -102,30 +102,32 @@
 </section>
 <!-- TextGrid (Filières) -->
 <section>
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-<div class="flex flex-1 gap-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 p-5 flex-col hover:border-primary/50 dark:hover:border-primary/50 hover:shadow-lg transition-all duration-300">
-<div class="text-primary"><span class="material-symbols-outlined !text-3xl">balance</span></div>
-<div class="flex flex-col gap-1">
-<h2 class="text-lg font-bold">Droit</h2>
-<p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">Tous les sujets et corrigés</p>
-</div>
-</div>
-<div class="flex flex-1 gap-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 p-5 flex-col hover:border-primary/50 dark:hover:border-primary/50 hover:shadow-lg transition-all duration-300">
-<div class="text-primary"><span class="material-symbols-outlined !text-3xl">work</span></div>
-<div class="flex flex-col gap-1">
-<h2 class="text-lg font-bold">Gestion</h2>
-<p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">Annales et études de cas</p>
-</div>
-</div>
-<div class="flex flex-1 gap-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 p-5 flex-col hover:border-primary/50 dark:hover:border-primary/50 hover:shadow-lg transition-all duration-300">
-<div class="text-primary"><span class="material-symbols-outlined !text-3xl">code</span></div>
-<div class="flex flex-col gap-1">
-<h2 class="text-lg font-bold">Informatique</h2>
-<p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">Projets et examens</p>
-</div>
-</div>
-</div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        @foreach ($featuredFilieres as $filiere)
+            <a href="{{ route('catalogue') }}?q={{ urlencode($filiere->name) }}"
+               class="flex flex-1 gap-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 p-5 flex-col hover:border-primary/50 dark:hover:border-primary/50 hover:shadow-lg transition-all duration-300">
+
+                <div class="text-primary text-3xl">
+                    @if($filiere->emblem)
+                        <img src="{{ asset('storage/'.$filiere->emblem) }}" class="w-10 h-10 object-contain" alt="{{ $filiere->name }}">
+                    @else
+                        <span class="material-symbols-outlined !text-3xl">school</span>
+                    @endif
+                </div>
+
+                <div class="flex flex-col gap-1">
+                    <h2 class="text-lg font-bold">{{ $filiere->name }}</h2>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">
+                        Cours, sujets et corrigés
+                    </p>
+                </div>
+            </a>
+        @endforeach
+
+    </div>
 </section>
+
 <!-- FeatureSection (Premium) -->
 <section class="flex flex-col gap-10 py-10 @container">
 <div class="flex flex-col items-start gap-8">
@@ -167,67 +169,42 @@
 </section>
 <!-- SectionHeader + Product Grid (Derniers Ajouts) -->
 <section class="flex flex-col gap-6">
-<h2 class="text-2xl font-bold tracking-tight">Derniers Ajouts</h2>
-<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-<!-- Product Card 1 -->
-<div class="flex flex-col gap-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 overflow-hidden group">
-<img class="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Une miniature de document PDF stylisée" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB4qyEyWwdZGoonHtEXNGYfk9VZil1_k5TtzpwwMRTTLp6xyEYJJDXB4aqc0wnb_9Tq8zX_iddLMm_d9PQN_TL6oyLbpeshsBJ6GmRKs_BCptXrHWbz23FtUBQ0J9BAbRYP9fQiWuXmORQn3ibhQwJhsKDv9X2JJ_Lnqq-HxAnUy2KAHbMmcOfI1J_iZv8ejO7C9RHYvlM33R64-C-PFHYE3Bfvl9Gi2Xr8HKOWihOxKD_Dsp3993G7AINlN2L2H7F-QmDFj7sASes"/>
-<div class="p-4 pt-0 flex flex-col gap-4">
-<div class="flex flex-col gap-1">
-<h3 class="font-bold text-gray-900 dark:text-white">Droit Constitutionnel</h3>
-<p class="text-sm text-gray-500 dark:text-gray-400">Année 2023</p>
-</div>
-<button class="w-full flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary/10 dark:bg-primary/20 text-primary text-sm font-bold hover:bg-primary/20 dark:hover:bg-primary/30 transition-colors">
-<span class="truncate">Voir / Acheter</span>
-</button>
-</div>
-</div>
-<!-- Product Card 2 -->
-<div class="flex flex-col gap-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 overflow-hidden group">
-<img class="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Une miniature de document PDF stylisée" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcTMdQg3f6KET-pMjNBEzziQYTM51YmOW56byJsipoTUannOdCOuqeRXoi1PMfM1RJ5ewStDiH6GfXGTy6rROX7WA14WSUn736nD4_kQgQX3vCksXYJnSYtabLauAGiWwswtUqF1EdcbwVolH1A8Hr89s-FhRqISTfIH2_LbAXVgTx0Lk5ZA8JXXoUHd9H0psr_7GbsEdfEdNhFqzFbzdz5BNl_PQlpbmw2Qtm381ADSoIR7CBQRW2eMqfvjG3RHGjBw7R6R1CMlQ"/>
-<div class="p-4 pt-0 flex flex-col gap-4">
-<div class="flex flex-col gap-1">
-<h3 class="font-bold text-gray-900 dark:text-white">Marketing Digital</h3>
-<p class="text-sm text-gray-500 dark:text-gray-400">Année 2023</p>
-</div>
-<button class="w-full flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary/10 dark:bg-primary/20 text-primary text-sm font-bold hover:bg-primary/20 dark:hover:bg-primary/30 transition-colors">
-<span class="truncate">Voir / Acheter</span>
-</button>
-</div>
-</div>
-<!-- Product Card 3 -->
-<div class="flex flex-col gap-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 overflow-hidden group">
-<img class="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Une miniature de document PDF stylisée" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBhcgr31IxK3Q-LOqouCaMej8o7U0DePcN6rkdipopgTGm_Sja75LitFdP-4OCCQ4x1buUV3iOng-hAZOGvhrmkiolXLRtk5tLCqfW-jzDmEHP-Cw9uoRbzhHWikvIzvhqMeEJJ4TGGH_2XjKdcIT_ilNidqcQAdTp_XAOtYHuUkJCXuFUSQTtKm7JhoMQdmKqYAGvwjh37RfchAFNW8-nqSiCIrM7qgMFGWwhBy0HmZ00wzUyjwoC-4BTkd8crCWtc_RGMkpLjFhs"/>
-<div class="p-4 pt-0 flex flex-col gap-4">
-<div class="flex flex-col gap-1">
-<h3 class="font-bold text-gray-900 dark:text-white">Algorithmique Avancée</h3>
-<p class="text-sm text-gray-500 dark:text-gray-400">Année 2022</p>
-</div>
-<button class="w-full flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary/10 dark:bg-primary/20 text-primary text-sm font-bold hover:bg-primary/20 dark:hover:bg-primary/30 transition-colors">
-<span class="truncate">Voir / Acheter</span>
-</button>
-</div>
-</div>
-<!-- Product Card 4 -->
-<div class="flex flex-col gap-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 overflow-hidden group">
-<img class="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Une miniature de document PDF stylisée" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA6QCSzIm1_-YaO8-gr_xWyL6GYAm3IPAAaAFU7oDZcNvIw9T9ObClCCk2Er5j9Ri_W9nrjtioIFGHFyam86PlLXrPxzLm9UJ6zgAvinHnxIcU35xnItqJraDuk7Gvqpaywoc_fVcRGmS4thTYxDgsLcDF3T8CWqIYRnwPtwJR8NJ7PS9deyWjc_xXnbMB5T2eJ-9DEh_4AJHUu1GEK2XUewe2Ayu67TpMfNZvvDmVbdt4Viz6P6swyoimlWB6MN6PMGrAGkmiFUsE"/>
-<div class="p-4 pt-0 flex flex-col gap-4">
-<div class="flex flex-col gap-1">
-<h3 class="font-bold text-gray-900 dark:text-white">Gestion de Projet</h3>
-<p class="text-sm text-gray-500 dark:text-gray-400">Année 2022</p>
-</div>
-<button class="w-full flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary/10 dark:bg-primary/20 text-primary text-sm font-bold hover:bg-primary/20 dark:hover:bg-primary/30 transition-colors">
-<span class="truncate">Voir / Acheter</span>
-</button>
-</div>
-</div>
-</div>
+    <h2 class="text-2xl font-bold tracking-tight">Derniers Ajouts</h2>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+
+        @forelse ($latestProducts as $product)
+            <div class="flex flex-col gap-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 overflow-hidden group">
+
+                <img class="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
+                     src="{{ $product->preview_path ? asset('storage/'.$product->preview_path) : asset('images/default-preview.jpg') }}"
+                     alt="{{ $product->title }}">
+
+                <div class="p-4 pt-0 flex flex-col gap-4">
+                    <div class="flex flex-col gap-1">
+                        <h3 class="font-bold text-gray-900 dark:text-white">{{ $product->title }}</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">
+                            {{ $product->period }} • {{ $product->matiere->name ?? '' }}
+                        </p>
+                    </div>
+
+                    <button onclick="window.location.href='{{ route('product.show', $product->id) }}'"
+                            class="w-full flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary/10 dark:bg-primary/20 text-primary text-sm font-bold hover:bg-primary/20 dark:hover:bg-primary/30 transition-colors">
+                        <span class="truncate">Voir / Acheter</span>
+                    </button>
+                </div>
+            </div>
+        @empty
+            <p class="text-gray-500">Aucun produit disponible pour le moment.</p>
+        @endforelse
+
+    </div>
 </section>
 <!-- CTA Section -->
 <section class="rounded-xl p-8 sm:p-12 text-center" style="background: #111827;">
 <div class="flex flex-col items-center gap-6">
 <h2 class="text-3xl font-bold tracking-tight text-white max-w-lg">Prêt à prendre une longueur d'avance dans vos études ?</h2>
-<button class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-6 bg-primary text-white text-base font-bold shadow-sm hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/50">
+<button onclick="window.location.href='{{ route('catalogue') }}'" class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-6 bg-primary text-white text-base font-bold shadow-sm hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/50">
 <span class="truncate">Découvrir le catalogue complet</span>
 </button>
 </div>
@@ -289,33 +266,3 @@
 </footer>
 </div>
 </body></html>
-<script>
-    const searchInput = document.querySelector('input[placeholder*="Rechercher"]');
-    const resultsContainer = document.createElement('div');
-    resultsContainer.className = 'absolute top-full left-0 right-0 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg mt-1 shadow-lg max-h-96 overflow-y-auto hidden z-50';
-
-    searchInput.parentElement.style.position = 'relative';
-    searchInput.parentElement.appendChild(resultsContainer);
-
-    searchInput.addEventListener('input', async function () {
-        const q = this.value.trim();
-        if (q.length < 2) {
-            resultsContainer.innerHTML = '';
-            resultsContainer.classList.add('hidden');
-            return;
-        }
-
-        const res = await fetch(`/search?q=${encodeURIComponent(q)}`);
-        const items = await res.json();
-
-        resultsContainer.innerHTML = items.map(item => `
-            <a href="${item.url}" class="block px-4 py-3 hover:bg-primary/10 dark:hover:bg-primary/20 border-b border-gray-100 dark:border-gray-700 last:border-0">
-                <div class="font-medium text-gray-900 dark:text-white">${item.title}</div>
-                <div class="text-sm text-gray-500 dark:text-gray-400">${item.subtitle}</div>
-                <div class="text-xs text-primary font-bold mt-1">${item.price} • ${item.corrected}</div>
-            </a>
-        `).join('');
-
-        resultsContainer.classList.toggle('hidden', items.length === 0);
-    });
-</script>

@@ -161,7 +161,7 @@
                         <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-lg dark:border-gray-800 dark:bg-gray-900">
                             <div class="flex items-baseline justify-between">
                                 <span class="text-3xl font-bold text-[#0d121b] dark:text-white">
-                                    {{ $product->price_euro ?? number_format($product->price_cfa / 655.957, 2) }}€
+                                    {{ $product->price_cfa ?? number_format($product->price_euro / 655.957, 2) }}FCFA
                                 </span>
                                 <div class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
                                     <div class="flex items-center gap-1.5">

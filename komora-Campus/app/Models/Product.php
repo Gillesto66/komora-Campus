@@ -18,7 +18,7 @@ class Product extends Model
     // Relations
     public function matiere()
     {
-        return $this->belongsTo(Matiere::class);
+        return $this->belongsTo(Matiere::class)->withDefault(); // ← clé magique
     }
 
     public function orderItems()
@@ -37,6 +37,26 @@ class Product extends Model
         return $this->file_size_kb < 1024
             ? $this->file_size_kb . ' Ko'
             : round($this->file_size_kb / 1024, 1) . ' Mo';
+    }
+
+    public function getNiveauAttribute()
+    {
+        return $this->matiere?->niveau;
+    }
+
+    public function getFiliereAttribute()
+    {
+        return $this->matiere?->niveau?->filiere;
+    }
+
+    public function getNiveauNameAttribute()
+    {
+        return $this->niveau?->name ?? 'Niveau inconnu';
+    }
+
+    public function getFiliereNameAttribute()
+    {
+        return $this->filiere?->name ?? 'Filière inconnue';
     }
 
     
