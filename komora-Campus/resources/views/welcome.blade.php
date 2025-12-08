@@ -61,7 +61,7 @@
 <a class="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors" href="#">Contact</a>
 </div>
 <button class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold shadow-sm hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/50">
-<span class="truncate">Connexion / S'inscrire</span>
+<a href="{{ route('auth') }}"><span class="truncate">Connexion / S'inscrire</span></a>
 </button>
 </div>
 <div class="md:hidden">

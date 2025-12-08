@@ -8,7 +8,7 @@ class Product extends Model
 {
     protected $fillable = [
         'type', 'title', 'matiere_id', 'description', 'price_cfa', 'price_euro',
-        'period', 'is_corrected', 'file_path', 'preview_path', 'diploma','pages_count',
+        'period', 'is_corrected', 'file_path', 'poids','nombre_pages','preview_path', 'diploma','pages_count',
         'file_size_kb',
     ];
 

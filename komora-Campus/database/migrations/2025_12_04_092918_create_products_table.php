@@ -20,6 +20,8 @@ return new class extends Migration
             $table->boolean('is_corrected');
             $table->string('file_path');
             $table->string('preview_path')->nullable();
+            $table->integer('poids')->nullable();
+            $table->integer('nombre_pages')->nullable();
             $table->integer('pages_count')->nullable();   // ← ordre correct
             $table->integer('file_size_kb')->nullable();   // ← ordre correct
             $table->enum('diploma', ['BAC', 'BTS'])->nullable(); // ou 'diplome' si tu as renommé

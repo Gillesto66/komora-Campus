@@ -8,20 +8,15 @@ use App\Models\Matiere;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
-use setasign\Fpdi\Fpdi; // Pour compter les pages PDF
+use setasign\Fpdi\Fpdi;
 
 class AdminProductController extends Controller
 {
     public function index()
     {
         $products = Product::with(['matiere.niveau.filiere'])->latest()->paginate(20);
-        return view('admin.products.index', compact('products'));
-    }
-
-    public function create()
-    {
         $matieres = Matiere::with('niveau.filiere')->get();
-        return view('admin.products.create', compact('matieres'));
+        return view('admin.product', compact('products', 'matieres'));
     }
 
     public function store(Request $request)
@@ -35,16 +30,13 @@ class AdminProductController extends Controller
             'price_cfa' => 'required|numeric|min:0',
             'price_euro' => 'nullable|numeric',
             'description' => 'required|string',
-            'file' => 'required|mimes:pdf|max:51200', // 50 Mo max
+            'file' => 'required|mimes:pdf|max:51200',
             'preview' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
         $filePath = $request->file('file')->store('products', 'public');
-        $previewPath = $request->hasFile('preview')
-            ? $request->file('preview')->store('previews', 'public')
-            : null;
+        $previewPath = $request->hasFile('preview') ? $request->file('preview')->store('previews', 'public') : null;
 
-        // Compter les pages + taille
         $fullPath = storage_path('app/public/' . $filePath);
         $pagesCount = $this->countPdfPages($fullPath);
         $fileSizeKb = round(filesize($fullPath) / 1024);
@@ -62,36 +54,28 @@ class AdminProductController extends Controller
             'preview_path' => $previewPath,
             'pages_count' => $pagesCount,
             'file_size_kb' => $fileSizeKb,
+            'nombre_pages' => $pagesCount, // Ajout pour alignement
+            'poids' => $fileSizeKb, // Ajout pour alignement
         ]);
 
-        Log::info('Produit créé par admin', ['product_id' => $product->id, 'pages' => $pagesCount, 'size_kb' => $fileSizeKb]);
+        Log::info('Produit créé', ['id' => $product->id, 'pages' => $pagesCount, 'poids' => $fileSizeKb]);
 
         return redirect()->route('admin.products.index')->with('success', 'Produit ajouté !');
     }
 
-    // Méthode magique pour compter les pages PDF
     private function countPdfPages($filePath)
     {
         try {
             $pdf = new Fpdi();
-            $pageCount = $pdf->setSourceFile($filePath);
-            return $pageCount;
+            return $pdf->setSourceFile($filePath);
         } catch (\Exception $e) {
-            Log::warning('Impossible de compter les pages PDF', ['file' => $filePath, 'error' => $e->getMessage()]);
+            Log::warning('Erreur comptage pages PDF', ['file' => $filePath, 'error' => $e->getMessage()]);
             return null;
         }
     }
 
-    // Edit / Update / Destroy (simplifiés)
-    public function edit(Product $product)
-    {
-        $matieres = Matiere::with('niveau.filiere')->get();
-        return view('admin.products.edit', compact('product', 'matieres'));
-    }
-
     public function update(Request $request, Product $product)
     {
-        // Même validation que store, mais file et preview en "sometimes"
         $data = $request->validate([
             'title' => 'required|string|max:255',
             'period' => 'required|string',
@@ -104,10 +88,14 @@ class AdminProductController extends Controller
         if ($request->hasFile('file')) {
             Storage::disk('public')->delete($product->file_path);
             $data['file_path'] = $request->file('file')->store('products', 'public');
-
             $fullPath = storage_path('app/public/' . $data['file_path']);
-            $data['pages_count'] = $this->countPdfPages($fullPath);
-            $data['file_size_kb'] = round(filesize($fullPath) / 1024);
+            $pagesCount = $this->countPdfPages($fullPath);
+            $fileSizeKb = round(filesize($fullPath) / 1024);
+            $data['pages_count'] = $pagesCount;
+            $data['file_size_kb'] = $fileSizeKb;
+            $data['nombre_pages'] = $pagesCount; // Ajout pour alignement
+            $data['poids'] = $fileSizeKb; // Ajout pour alignement
+            Log::info('Fichier mis à jour', ['id' => $product->id, 'pages' => $pagesCount, 'poids' => $fileSizeKb]);
         }
 
         if ($request->hasFile('preview')) {
@@ -124,6 +112,7 @@ class AdminProductController extends Controller
     {
         Storage::disk('public')->delete([$product->file_path, $product->preview_path]);
         $product->delete();
+        Log::info('Produit supprimé', ['id' => $product->id]);
         return back()->with('success', 'Produit supprimé');
     }
 }

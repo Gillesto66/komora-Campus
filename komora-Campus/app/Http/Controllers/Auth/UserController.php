@@ -9,10 +9,23 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
+use App\Models\Product;
+use App\Models\Filiere;
+use App\Models\Niveau;
+use App\Models\Matiere;
 
 class UserController extends Controller
 {
     // Register
+
+    public function showAuth()
+    {
+        if (Auth::guard('admin')->check() || Auth::guard('affilier')->check() || Auth::guard('user')->check()) {
+            return redirect()->route('dashboard.admin'); // ou redirectTo() selon le rôle
+        }
+
+        return view('auth');
+    }
     public function register(Request $request)
     {
         $request->validate([
@@ -94,7 +107,18 @@ class UserController extends Controller
     // Dashboards (vues simples et créatives)
     public function showAdmin()
     {
-        return view('dashboard.admin', ['user' => Auth::guard('admin')->user()]);
+        $stats = [
+            'products_count' => Product::count(),
+            'filieres_count' => Filiere::count(),
+            'niveaux_count' => Niveau::count(),
+            'matieres_count' => Matiere::count(),
+            'users_count' => User::count(), // Exemple stats users
+            // Ajouter d'autres stats si besoin, e.g. orders: Order::count()
+        ];
+
+        Log::info('Dashboard admin affiché', ['user_id' => Auth::guard('admin')->id(), 'stats' => $stats]);
+
+        return view('dashboard.admin', compact('stats'));
     }
 
     public function showUser()

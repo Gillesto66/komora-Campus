@@ -52,6 +52,7 @@
 <a class="text-[#4c669a] dark:text-slate-400 text-sm font-medium leading-normal hover:text-primary dark:hover:text-white" href="#">Accueil</a>
 <a class="text-[#0d121b] dark:text-white text-sm font-bold leading-normal" href="#">Catalogue</a>
 <a class="text-[#4c669a] dark:text-slate-400 text-sm font-medium leading-normal hover:text-primary dark:hover:text-white" href="#">FAQ</a>
+<a href="{{ route('auth') }}"><span class="truncate">Connexion / S'inscrire</span></a>
 <a class="text-[#4c669a] dark:text-slate-400 text-sm font-medium leading-normal hover:text-primary dark:hover:text-white" href="#">Contact</a>
 </div>
 </div>

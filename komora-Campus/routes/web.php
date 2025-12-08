@@ -4,12 +4,16 @@ use App\Http\Controllers\Auth\UserController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\Admin\AdminProductController;
+use App\Http\Controllers\Admin\AdminFiliereController;
+use App\Http\Controllers\Admin\AdminNiveauController;
+use App\Http\Controllers\Admin\AdminMatiereController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\DownloadController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
+
 
 
 
@@ -45,14 +49,29 @@ Route::middleware('auth:user')->group(function () {
 
 
 // Auth
-Route::post('/register', [UserController::class, 'register'])->name('register.store');
+Route::get('/login', [UserController::class, 'showAuth'])->name('auth');
 Route::post('/login', [UserController::class, 'login'])->name('login');
+Route::post('/register', [UserController::class, 'register'])->name('register');
 Route::post('/logout', [UserController::class, 'logout'])->name('logout');
 
 // Dashboards protégés par garde + middleware personnalisé
 Route::middleware('auth:admin')->group(function () {
     Route::get('/dashboard/admin', [UserController::class, 'showAdmin'])->name('dashboard.admin');
     Route::resource('products', AdminProductController::class)->except(['show']);
+    Route::resource('filieres', AdminFiliereController::class)->except(['show']);
+    Route::resource('niveaux', AdminNiveauController::class)->only([
+        'index', 'store', 'update', 'destroy'
+    ]);
+
+    Route::resource('matieres', AdminMatiereController::class)->only([
+        'index', 'store', 'update', 'destroy'
+    ]);
+
+    // Route AJAX pour charger les niveaux par filière
+    Route::get('filieres/{filiere_id}/niveaux', [AdminMatiereController::class, 'niveauxByFiliere'])
+         ->name('admin.filieres.niveaux');
+
+
 });
 
 Route::middleware('auth:affilier')->group(function () {
