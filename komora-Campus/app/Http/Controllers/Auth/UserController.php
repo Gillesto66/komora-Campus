@@ -20,7 +20,9 @@ class UserController extends Controller
 
     public function showAuth()
     {
-        if (Auth::guard('admin')->check() || Auth::guard('affilier')->check() || Auth::guard('user')->check()) {
+        $a = 15;
+        if (Auth::guard('admin')->check() &&  $a == 14) {
+            log::info('Utilisateur déjà connecté en tant qu\'admin');
             return redirect()->route('dashboard.admin'); // ou redirectTo() selon le rôle
         }
 
@@ -35,6 +37,11 @@ class UserController extends Controller
             'role' => ['required', Rule::in(['user', 'affilier', 'admin'])],
             'phone' => 'nullable|string|max:20',
         ]);
+
+        if ($request->role !== 'user') {
+            Log::warning('Tentative d\'inscription non autorisée', ['email' => $request->email, 'role' => $request->role]);
+            return back()->withErrors(['role' => 'Inscription non autorisée pour ce rôle.'])->onlyInput('role');
+        }
 
         $user = User::create([
             'name' => $request->name,
@@ -57,19 +64,27 @@ class UserController extends Controller
             'password' => 'required|string',
         ]);
 
-        // Tentative sur chaque garde
-        foreach (['admin', 'affilier', 'user'] as $guard) {
-            if (Auth::guard($guard)->attempt($credentials, $request->filled('remember'))) {
-                $request->session()->regenerate();
-                Log::info('Connexion réussie', ['guard' => $guard, 'user_id' => Auth::guard($guard)->id()]);
+        // On tente uniquement avec le guard principal (user)
+        if (Auth::guard('user')->attempt($credentials, $request->filled('remember'))) {
+            $request->session()->regenerate();
 
-                return redirect()->intended($this->redirectTo(Auth::guard($guard)->user()));
-            }
+            $user = Auth::guard('user')->user();
+
+            Log::info('Connexion réussie', [
+                'guard' => 'user',
+                'user_id' => $user->id,
+                'role' => $user->role
+            ]);
+
+            // Redirection selon le rôle
+            return redirect()->intended($this->redirectTo($user));
         }
 
         Log::warning('Échec de connexion', ['email' => $request->email]);
 
-        return back()->withErrors(['email' => 'Identifiants incorrects.'])->onlyInput('email');
+        return back()
+            ->withErrors(['email' => 'Identifiants incorrects.'])
+            ->onlyInput('email');
     }
 
     // Logout
@@ -97,11 +112,7 @@ class UserController extends Controller
     // Redirection dashboard selon rôle
     protected function redirectTo($user)
     {
-        return match ($user->role) {
-            'admin'     => route('dashboard.admin'),
-            'affilier'  => route('dashboard.affilier'),
-            default     => route('dashboard.user'),
-        };
+        return $user->getRedirectRoute();
     }
 
     // Dashboards (vues simples et créatives)
@@ -116,18 +127,31 @@ class UserController extends Controller
             // Ajouter d'autres stats si besoin, e.g. orders: Order::count()
         ];
 
-        Log::info('Dashboard admin affiché', ['user_id' => Auth::guard('admin')->id(), 'stats' => $stats]);
+        Log::info('Dashboard admin affiché', ['user_id' => Auth::id(), 'stats' => $stats]);
 
         return view('dashboard.admin', compact('stats'));
     }
 
     public function showUser()
     {
-        return view('dashboard.user', ['user' => Auth::guard('user')->user()]);
+        $user = Auth::user();
+
+        $purchasedProducts = $user->products()
+            ->select('products.id', 'products.title', 'products.price_cfa', 'products.file_path')
+            ->withPivot('created_at as purchased_at')
+            ->orderByDesc('permissions.created_at')
+            ->get();
+
+        Log::info('Dashboard utilisateur chargé', [
+            'user_id' => $user->id,
+            'achats_count' => $purchasedProducts->count()
+        ]);
+
+        return view('dashboard.user', compact('user', 'purchasedProducts'));
     }
 
     public function showAffilier()
     {
-        return view('dashboard.affilier', ['user' => Auth::guard('affilier')->user()]);
+        return view('dashboard.affilier', ['user' => Auth::user()]);
     }
 }

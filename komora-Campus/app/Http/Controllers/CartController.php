@@ -30,8 +30,10 @@ class CartController extends Controller
         }
 
         session(['cart' => $cart]);
+        $user ='guest';
+        // $user = Auth::id() ?? 'guest';
 
-        Log::info('Produit ajouté au panier', ['user_id' => Auth::id(), 'product_id' => $product->id]);
+        Log::info('Produit ajouté au panier', ['user_id' => $user, 'product_id' => $product->id]);
 
         return redirect()->route('cart.view')->with('success', 'Ajouté au panier !');
     }
@@ -64,46 +66,36 @@ class CartController extends Controller
         $transactionId = $request->input('transaction_id');
 
         if (!$transactionId || $request->input('status') !== 'SUCCESS') {
-            Log::warning('Paiement Kkiapay échoué ou invalide', $request->all());
-            return redirect()->route('cart.view')->with('error', 'Paiement échoué ou annulé.');
+            Log::warning('Paiement Kkiapay échoué', $request->all());
+            return redirect()->route('cart.view')->with('error', 'Paiement échoué.');
         }
 
         $cart = session('cart', []);
         if (empty($cart)) {
+            Log::info('Panier vide post-paiement');
             return redirect()->route('home');
         }
 
-        $total = collect($cart)->sum(fn($i) => $i['price'] * $i['quantity']);
-
-        // Récupération des infos client depuis la session (ajoutées dans le panier)
+        $total = collect($cart)->sum(fn($i) => $i['price'] * ($i['quantity'] ?? 1));
         $customerEmail = session('customer_email');
-        $customerName  = session('customer_name', 'Client KOMORA');
+        $customerName = session('customer_name', 'Client Anonyme');
 
         if (!$customerEmail) {
-            Log::error('Email client manquant lors du callback Kkiapay');
-            return redirect()->route('cart.view')->with('error', 'Erreur de traitement de la commande.');
+            Log::error('Email manquant post-paiement');
+            return redirect()->route('cart.view')->with('error', 'Erreur commande.');
         }
 
-        // Création ou récupération de l'utilisateur
-        $user = \App\Models\User::firstOrCreate(
-            ['email' => $customerEmail],
-            [
-                'name' => $customerName,
-                'password' => bcrypt(Str::random(16)), // mot de passe temporaire
-                'role' => 'user',
-            ]
-        );
+        $userId = Auth::check() ? Auth::id() : null;
 
-        // Connexion automatique
-        Auth::login($user);
-
-        // Création de la commande
+        // Création order
         $order = Order::create([
-            'user_id' => $user->id,
+            'user_id' => $userId,
             'total_amount' => $total,
             'status' => 'paid',
             'payment_provider' => 'kkiapay',
             'transaction_id' => $transactionId,
+            'customer_email' => $customerEmail,
+            'customer_name' => $customerName,
         ]);
 
         foreach ($cart as $item) {
@@ -111,32 +103,39 @@ class CartController extends Controller
                 'order_id' => $order->id,
                 'product_id' => $item['id'],
                 'price' => $item['price'],
-                'quantity' => $item['quantity'] ?? 1,
             ]);
 
-            Permission::updateOrCreate(
-                ['user_id' => $user->id, 'product_id' => $item['id']],
-                ['expires_at' => null]
-            );
+            if ($userId) { // Si auth → permissions permanentes
+                Permission::updateOrCreate(
+                    ['user_id' => $userId, 'product_id' => $item['id']],
+                    ['expires_at' => null]
+                );
+            }
         }
 
         session()->forget(['cart', 'customer_email', 'customer_name']);
 
-        Log::info('Commande créée avec succès pour nouveau/compte existant', [
+        Log::info('Commande créée', [
             'order_id' => $order->id,
-            'user_id' => $user->id,
+            'user_id' => $userId,
             'email' => $customerEmail,
-            'new_user' => $user->wasRecentlyCreated
         ]);
 
-        // Si l'utilisateur vient de être créé → on le redirige vers la page de définition du mot de passe
-        if ($user->wasRecentlyCreated) {
-            return redirect()->route('download')->with('must_set_password', true);
+        if ($userId) {
+            return redirect()->route('download.index')->with('success', 'Paiement OK !');
         }
 
-        return redirect()->route('download')->with('success', 'Paiement réussi ! Vos fichiers sont prêts.');
-    }
+        // Mode guest : Génère token 24h
+        $token = Str::uuid();
+        $order->update([
+            'token' => $token,
+            'token_expires_at' => now()->addDay(),
+        ]);
 
+        Log::info('Token guest généré', ['order_id' => $order->id, 'token' => $token]);
+
+        return redirect()->route('download.guest', ['token' => $token]);
+    }
     public function saveCustomer(Request $request)
     {
         $request->validate([

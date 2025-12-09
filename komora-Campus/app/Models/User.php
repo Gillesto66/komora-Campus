@@ -25,6 +25,22 @@ class User extends Authenticatable
 
     public function products()
     {
-        return $this->belongsToMany(Product::class, 'permissions');
+        return $this->belongsToMany(Product::class, 'permissions')
+                    ->withTimestamps()
+                    ->withPivot('created_at')
+                    ->as('purchase') // ← clé magique
+                    ->withCasts(['purchase.created_at' => 'datetime:d F Y']); // ← cast direct !
     }
+
+    public function getRedirectRoute()
+    {
+        return match ($this->role) {
+            'admin'     => '/dashboard/admin',
+            'affilier'  => '/affilier/dashboard',
+            'user'      => '/dashboard',
+            default     => '/dashboard',
+        };
+    }
+
+    
 }

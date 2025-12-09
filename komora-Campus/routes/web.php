@@ -25,6 +25,7 @@ Route::post('/cart/add/{product}', [CartController::class, 'add'])->name('cart.a
 Route::get('/panier', [CartController::class, 'view'])->name('cart.view');
 Route::delete('/cart/remove/{product}', [CartController::class, 'remove'])->name('cart.remove');
 Route::post('/checkout', [CartController::class, 'checkout'])->name('checkout');
+Route::get('Kkiapay/callback', [CartController::class, 'kkiapayCallback'])->name('kkiapay.callback');
 
 Route::post('/cart/save-customer', [CartController::class, 'saveCustomer'])->name('cart.save-customer');
 
@@ -38,15 +39,11 @@ Route::get('/niveaux/{filiereId}', [ProductController::class, 'getNiveaux']);
 Route::get('/matieres/{niveauId}', [ProductController::class, 'getMatieres']);
 Route::get('/products/filter', [ProductController::class, 'filter']);
 
-Route::get('/download/{product}', [DownloadController::class, 'generateSignedUrl'])->name('download.link');
-
-Route::middleware('auth:user')->group(function () {
-    
-    Route::get('/mes-telechargements', [DownloadController::class, 'index'])->name('download.page');
-   
-});
-
-
+Route::get('/download', [DownloadController::class, 'index'])->name('download.index')->middleware('auth');
+Route::get('/download/guest/{token}', [DownloadController::class, 'guest'])->name('download.guest');
+Route::post('/download/set-password/{order}', [DownloadController::class, 'setPassword'])->name('download.set_password');
+Route::get('/download/signed/{product}', [DownloadController::class, 'generateSignedUrl'])->name('download.signed');
+Route::get('/download/file/{product}', [DownloadController::class, 'download'])->name('download.file');
 
 // Auth
 Route::get('/login', [UserController::class, 'showAuth'])->name('auth');
@@ -55,7 +52,7 @@ Route::post('/register', [UserController::class, 'register'])->name('register');
 Route::post('/logout', [UserController::class, 'logout'])->name('logout');
 
 // Dashboards protégés par garde + middleware personnalisé
-Route::middleware('auth:admin')->group(function () {
+Route::middleware('auth:user')->group(function () {
     Route::get('/dashboard/admin', [UserController::class, 'showAdmin'])->name('dashboard.admin');
     Route::resource('products', AdminProductController::class)->except(['show']);
     Route::resource('filieres', AdminFiliereController::class)->except(['show']);
@@ -81,21 +78,3 @@ Route::middleware('auth:affilier')->group(function () {
 Route::middleware('auth:user')->group(function () {
     Route::get('/dashboard', [UserController::class, 'showUser'])->name('dashboard.user');
 });
-
-// web.php
-Route::post('/set-password', function (Request $request) {
-    $request->validate([
-        'email' => 'required|email|exists:users,email',
-        'password' => 'required|confirmed|min:8',
-    ]);
-
-    $user = \App\Models\User::where('email', $request->email)->first();
-    $user->password = bcrypt($request->password);
-    $user->save();
-
-    Auth::login($user);
-
-    Log::info('Mot de passe défini par nouvel utilisateur', ['user_id' => $user->id]);
-
-    return redirect()->route('dashboard')->with('success', 'Mot de passe enregistré ! Bienvenue !');
-})->name('password.set');

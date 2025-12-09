@@ -136,40 +136,40 @@
 </div>
 </div>
 <div class="w-full border-t border-solid border-border-light dark:border-border-dark my-8"></div>
+@if(isset($is_guest))
+    <div class="mb-8 p-6 bg-primary/10 rounded-xl w-full">
+        <h3 class="text-2xl font-bold text-primary mb-4">Créez votre compte (optionnel)</h3>
+        <p class="mb-6">Cette page expire dans 24h. Créez un compte pour accès permanent.</p>
+        <form action="{{ route('download.set_password', $order) }}" method="POST" class="space-y-4">
+            @csrf
+            <input type="password" name="password" required placeholder="Mot de passe" class="w-full h-12 rounded-lg border">
+            <input type="password" name="password_confirmation" required placeholder="Confirmer" class="w-full h-12 rounded-lg border">
+            <button type="submit" class="w-full h-12 bg-primary text-white rounded-lg">Créer compte</button>
+        </form>
+    </div>
+@endif
+
 <div class="w-full text-left flex flex-col gap-4">
-<h3 class="text-lg font-bold">Vos documents</h3>
-<div class="flex items-center gap-4 bg-background-light dark:bg-background-dark/60 p-4 min-h-[72px] justify-between rounded-lg">
-<div class="flex items-center gap-4">
-<div class="text-primary flex items-center justify-center rounded-lg bg-primary/10 shrink-0 size-12">
-<span class="material-symbols-outlined">picture_as_pdf</span>
-</div>
-<div class="flex flex-col justify-center">
-<p class="text-base font-medium leading-normal line-clamp-1">Annales de Droit Constitutionnel - L1</p>
-<p class="text-text-secondary-light dark:text-text-secondary-dark text-sm font-normal leading-normal line-clamp-2">PDF - 3.2MB</p>
-</div>
-</div>
-<div class="shrink-0">
-<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary/20 dark:bg-primary/30 text-primary text-sm font-medium leading-normal w-fit transition-colors hover:bg-primary/30 dark:hover:bg-primary/40">
-<span class="truncate">Télécharger</span>
-</button>
-</div>
-</div>
-<div class="flex items-center gap-4 bg-background-light dark:bg-background-dark/60 p-4 min-h-[72px] justify-between rounded-lg">
-<div class="flex items-center gap-4">
-<div class="text-primary flex items-center justify-center rounded-lg bg-primary/10 shrink-0 size-12">
-<span class="material-symbols-outlined">picture_as_pdf</span>
-</div>
-<div class="flex flex-col justify-center">
-<p class="text-base font-medium leading-normal line-clamp-1">Corrigé de l'examen de Biologie - M2</p>
-<p class="text-text-secondary-light dark:text-text-secondary-dark text-sm font-normal leading-normal line-clamp-2">PDF - 1.8MB</p>
-</div>
-</div>
-<div class="shrink-0">
-<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary/20 dark:bg-primary/30 text-primary text-sm font-medium leading-normal w-fit transition-colors hover:bg-primary/30 dark:hover:bg-primary/40">
-<span class="truncate">Télécharger</span>
-</button>
-</div>
-</div>
+    <h3 class="text-lg font-bold">Vos documents</h3>
+    @forelse($downloads as $download)
+        <div class="flex items-center gap-4 bg-background-light p-4 rounded-lg justify-between">
+            <div class="flex items-center gap-4">
+                <div class="text-primary bg-primary/10 size-12 flex items-center justify-center rounded-lg">
+                    <span class="material-symbols-outlined">picture_as_pdf</span>
+                </div>
+                <div>
+                    <p class="text-base font-medium">{{ $download->title }}</p>
+                    <p class="text-sm text-text-secondary-light">PDF - {{ $download->poids ?? 'N/A' }}MB</p>
+                </div>
+            </div>
+            <a href="{{ route('download.signed', ['product' => $download->id, 'token' => $order->token ?? null]) }}"
+               class="px-4 h-10 bg-primary/20 text-primary rounded-lg font-medium hover:bg-primary/30">
+                Télécharger
+            </a>
+        </div>
+    @empty
+        <p>Aucun document.</p>
+    @endforelse
 </div>
 <div class="w-full border-t border-solid border-border-light dark:border-border-dark my-8"></div>
 <div class="w-full flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">

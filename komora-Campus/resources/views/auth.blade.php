@@ -144,7 +144,6 @@
                                 <option value="">Choisir un rôle</option>
                                 <option value="user" {{ old('role') == 'user' ? 'selected' : '' }}>Étudiant / Utilisateur</option>
                                 <option value="affilier" {{ old('role') == 'affilier' ? 'selected' : '' }}>Affilié (Revendeur)</option>
-                                <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Administrateur</option>
                             </select>
                             @error('role') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>

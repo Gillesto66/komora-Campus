@@ -16,6 +16,10 @@ return new class extends Migration
                   ->default('pending');
             $table->string('payment_provider'); // MTN, Kkiapay, Stripe, etc.
             $table->string('transaction_id')->nullable();
+            $table->string('custom_email')->nullable();
+            $table->string('custom_name')->nullable();
+            $table->string('token')->unique()->nullable();
+            $table->timestamp('token_expires_at')->nullable();
             $table->timestamps();
 
             $table->index('status');

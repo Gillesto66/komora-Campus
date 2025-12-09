@@ -66,6 +66,12 @@
 <span class="material-symbols-outlined text-gray-600 dark:text-gray-400">settings</span>
 <p class="text-gray-800 dark:text-gray-200 text-sm font-medium leading-normal">Paramètres</p>
 </a>
+<a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+  Déconnexion
+</a>
+<form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+    @csrf
+</form>
 </nav>
 </aside>
 <!-- Main Content -->
@@ -90,13 +96,15 @@
 <div class="p-10">
 <!-- PageHeading -->
 <div class="flex flex-wrap justify-between gap-3 mb-8">
-<h1 class="text-gray-900 dark:text-white text-3xl font-bold leading-tight tracking-tight min-w-72">Bienvenue, [User Name]!</h1>
+<h1 class="text-gray-900 dark:text-white text-3xl font-bold leading-tight tracking-tight min-w-72">Bienvenue, {{ $user->name }}!</h1>
 </div>
 <!-- Stats -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
 <div class="flex flex-col gap-2 rounded-xl p-6 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm">
 <p class="text-gray-600 dark:text-gray-400 text-sm font-medium leading-normal">Crédits Restants</p>
-<p class="text-gray-900 dark:text-white tracking-tight text-3xl font-bold leading-tight">150</p>
+<p class="text-gray-900 dark:text-white tracking-tight text-3xl font-bold leading-tight">
+    {{ $purchasedProducts->count() }}
+</p>
 </div>
 <div class="flex flex-col gap-2 rounded-xl p-6 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm">
 <p class="text-gray-600 dark:text-gray-400 text-sm font-medium leading-normal">Abonnement Actuel</p>
@@ -122,46 +130,37 @@
 </tr>
 </thead>
 <tbody>
-<tr class="bg-white dark:bg-gray-900 border-b dark:border-gray-800">
-<th class="px-6 py-4 font-medium text-gray-900 dark:text-white whitespace-nowrap" scope="row">Annales Maths L1 - Semestre 1</th>
-<td class="px-6 py-4">15 Octobre 2023</td>
-<td class="px-6 py-4">15 Crédits</td>
-<td class="px-6 py-4 text-right">
-<button class="flex items-center gap-2 justify-center ml-auto px-4 py-2 text-sm font-semibold text-white bg-primary rounded-lg hover:bg-primary/90">
-<span class="material-symbols-outlined text-base">download</span>Télécharger
-                      </button>
-</td>
-</tr>
-<tr class="bg-white dark:bg-gray-900 border-b dark:border-gray-800">
-<th class="px-6 py-4 font-medium text-gray-900 dark:text-white whitespace-nowrap" scope="row">Corrigé Droit Constitutionnel 2022</th>
-<td class="px-6 py-4">12 Octobre 2023</td>
-<td class="px-6 py-4">10 Crédits</td>
-<td class="px-6 py-4 text-right">
-<button class="flex items-center gap-2 justify-center ml-auto px-4 py-2 text-sm font-semibold text-white bg-primary rounded-lg hover:bg-primary/90">
-<span class="material-symbols-outlined text-base">download</span>Télécharger
-                      </button>
-</td>
-</tr>
-<tr class="bg-white dark:bg-gray-900 border-b dark:border-gray-800">
-<th class="px-6 py-4 font-medium text-gray-900 dark:text-white whitespace-nowrap" scope="row">Sujet d'Économie - Session d'été</th>
-<td class="px-6 py-4">28 Septembre 2023</td>
-<td class="px-6 py-4">5 Crédits</td>
-<td class="px-6 py-4 text-right">
-<button class="flex items-center gap-2 justify-center ml-auto px-4 py-2 text-sm font-semibold text-white bg-primary rounded-lg hover:bg-primary/90">
-<span class="material-symbols-outlined text-base">download</span>Télécharger
-                      </button>
-</td>
-</tr>
-<tr class="bg-white dark:bg-gray-900">
-<th class="px-6 py-4 font-medium text-gray-900 dark:text-white whitespace-nowrap" scope="row">Annales de Physique Quantique L3</th>
-<td class="px-6 py-4">15 Septembre 2023</td>
-<td class="px-6 py-4">20 Crédits</td>
-<td class="px-6 py-4 text-right">
-<button class="flex items-center gap-2 justify-center ml-auto px-4 py-2 text-sm font-semibold text-white bg-primary rounded-lg hover:bg-primary/90">
-<span class="material-symbols-outlined text-base">download</span>Télécharger
-                      </button>
-</td>
-</tr>
+@forelse($purchasedProducts as $product)
+    <tr class="bg-white dark:bg-gray-900 border-b dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition">
+        <th class="px-6 py-4 font-medium text-gray-900 dark:text-white whitespace-nowrap" scope="row">
+            {{ $product->title }}
+        </th>
+        <td class="px-6 py-4 text-gray-600 dark:text-gray-300">
+            {{ $product->purchase->created_at }}
+            <!-- ou si tu veux garder purchased_at : -->
+            {{ $product->purchase->created_at }}
+        </td>
+        <td class="px-6 py-4 text-gray-600 dark:text-gray-300">
+            {{ number_format($product->price_cfa) }} FCFA
+        </td>
+        <td class="px-6 py-4 text-right">
+            <a href="{{ route('download.file', $product->id) }}"
+               class="flex items-center gap-2 justify-center ml-auto px-4 py-2 text-sm font-semibold text-white bg-primary rounded-lg hover:bg-primary/90 transition">
+                <span class="material-symbols-outlined text-base">download</span>
+                Télécharger
+            </a>
+        </td>
+    </tr>
+@empty
+    <tr>
+        <td colspan="4" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+            Vous n'avez pas encore acheté de fichiers.<br>
+            <a href="{{ route('products.index') }}" class="text-primary hover:underline font-medium">
+                Découvrir le catalogue →
+            </a>
+        </td>
+    </tr>
+@endforelse
 </tbody>
 </table>
 </div>
