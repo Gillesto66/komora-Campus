@@ -244,8 +244,11 @@
 <div>
 <h3 class="mb-4 text-sm font-semibold uppercase text-gray-900 dark:text-white">Légal</h3>
 <ul class="text-gray-500 dark:text-gray-400 font-medium space-y-3">
-<li><a class="hover:underline" href="#">Mentions Légales</a></li>
-<li><a class="hover:underline" href="#">Conditions d'utilisation</a></li>
+<li><a class="hover:underline" href="/legal/mentions-legales.html">Mentions Légales</a></li>
+<li><a class="hover:underline" href="/legal/cgu.html">Conditions d'utilisation</a></li>
+<li><a class="hover:underline" href="/legal/cgv.html">Conditions de vente</a></li>
+<li><a class="hover:underline" href="/legal/confidentialite.html">Confidentialité</a></li>
+<li><a class="hover:underline" href="/legal/cookies.html">Cookies</a></li>
 </ul>
 </div>
 </div>
